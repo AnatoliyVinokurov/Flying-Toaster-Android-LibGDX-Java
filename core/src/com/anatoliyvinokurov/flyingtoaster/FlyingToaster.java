@@ -20,21 +20,26 @@ public class FlyingToaster extends ApplicationAdapter {
 	Texture background;
 	//ShapeRenderer shapeRenderer;
 
+	Texture gameover;
+	Texture taptoplay;
+	Texture developer;
 	Texture[] birds;
 	int flapState = 0;
 	float birdY = 0;
 	float velocity = 0;
 	Circle birdCircle;
 	int score = 0;
+
+	int scoreForAdd = 0;
 	int scoringTube = 0;
 	BitmapFont font;
 
 	int gameState = 0;
-	float gravity = 2;
+	float gravity = 1;
 
 	Texture topTube;
 	Texture bottomTube;
-	float gap = 400;
+	float gap = 350;
 	float maxTubeOffset;
 	Random randomGenerator;
 	float tubeVelocity = 4;
@@ -51,6 +56,9 @@ public class FlyingToaster extends ApplicationAdapter {
 	public void create () {
 		batch = new SpriteBatch();
 		background = new Texture("bg.png");
+		gameover = new Texture("gameover.png");
+		developer = new Texture("developer.png");
+		taptoplay = new Texture("taptoplay.png");
 		//shapeRenderer = new ShapeRenderer();
 		birdCircle = new Circle();
 		font = new BitmapFont();
@@ -60,7 +68,6 @@ public class FlyingToaster extends ApplicationAdapter {
 		birds = new Texture[2];
 		birds[0] = new Texture("bird.png");
 		birds[1] = new Texture("bird2.png");
-		birdY = Gdx.graphics.getHeight() / 2 - birds[0].getHeight() / 2;
 
 		topTube = new Texture("toptube.png");
 		bottomTube = new Texture("bottomtube.png");
@@ -69,6 +76,14 @@ public class FlyingToaster extends ApplicationAdapter {
 		distanceBetweenTubes = Gdx.graphics.getWidth() * 3 / 4;
 		topTubeRectangles = new Rectangle[numberOfTubes];
 		bottomTubeRectangles = new Rectangle[numberOfTubes];
+
+		startGame();
+
+	}
+
+	public void startGame() {
+
+		birdY = Gdx.graphics.getHeight() / 2 - birds[0].getHeight() / 2;
 
 		for (int i = 0; i < numberOfTubes; i++) {
 
@@ -81,10 +96,6 @@ public class FlyingToaster extends ApplicationAdapter {
 
 		}
 
-
-
-
-
 	}
 
 	@Override
@@ -93,11 +104,12 @@ public class FlyingToaster extends ApplicationAdapter {
 		batch.begin();
 		batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
-		if (gameState != 0) {
+		if (gameState == 1) {
 
 			if (tubeX[scoringTube] < Gdx.graphics.getWidth() / 2) {
 
 				score++;
+				scoreForAdd++;
 
 				Gdx.app.log("Score", String.valueOf(score));
 
@@ -115,7 +127,7 @@ public class FlyingToaster extends ApplicationAdapter {
 
 			if (Gdx.input.justTouched()) {
 
-				velocity = -30;
+				velocity = -15;
 
 			}
 
@@ -130,8 +142,6 @@ public class FlyingToaster extends ApplicationAdapter {
 
 					tubeX[i] = tubeX[i] - tubeVelocity;
 
-
-
 				}
 
 				batch.draw(topTube, tubeX[i], Gdx.graphics.getHeight() / 2 + gap / 2 + tubeOffset[i]);
@@ -143,18 +153,45 @@ public class FlyingToaster extends ApplicationAdapter {
 
 
 
-			if (birdY > 0 || velocity < 0) {
+			if (birdY > 0) {
 
 				velocity = velocity + gravity;
 				birdY -= velocity;
 
+			} else {
+
+				gameState = 2;
+
 			}
 
-		} else {
+		} else if (gameState == 0) {
+
+			batch.draw(taptoplay, Gdx.graphics.getWidth() / 2 - gameover.getWidth()/ 2, Gdx.graphics.getHeight() / 2 - gameover.getHeight()*2);
+			batch.draw(developer, Gdx.graphics.getWidth() - developer.getWidth(), Gdx.graphics.getHeight() - Gdx.graphics.getHeight() + developer.getHeight()/2);
+			if (Gdx.input.justTouched()) {
+
+				gameState = 1;
+
+			}
+
+		} else if (gameState == 2) {
+
+			if(scoreForAdd >= 10){ ////pokazat reklamu
+				batch.draw(taptoplay, Gdx.graphics.getWidth() / 2 - gameover.getWidth() / 2, Gdx.graphics.getHeight() / 2 - gameover.getHeight() / 2);
+			}
+
+			batch.draw(gameover, Gdx.graphics.getWidth() / 2 - gameover.getWidth() / 2, Gdx.graphics.getHeight() / 2 - gameover.getHeight() / 2);
 
 			if (Gdx.input.justTouched()) {
 
 				gameState = 1;
+				startGame();
+				score = 0;
+				scoringTube = 0;
+				velocity = 0;
+				if(scoreForAdd >=10){///sbros pokaz reklamy
+					scoreForAdd = 0;
+				}
 
 			}
 
@@ -166,15 +203,11 @@ public class FlyingToaster extends ApplicationAdapter {
 			flapState = 0;
 		}
 
-
-
 		batch.draw(birds[flapState], Gdx.graphics.getWidth() / 2 - birds[flapState].getWidth() / 2, birdY);
 
 		font.draw(batch, String.valueOf(score), 100, 200);
 
 		birdCircle.set(Gdx.graphics.getWidth() / 2, birdY + birds[flapState].getHeight() / 2, birds[flapState].getWidth() / 2);
-
-
 
 		//shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 		//shapeRenderer.setColor(Color.RED);
@@ -185,10 +218,9 @@ public class FlyingToaster extends ApplicationAdapter {
 			//shapeRenderer.rect(tubeX[i], Gdx.graphics.getHeight() / 2 + gap / 2 + tubeOffset[i], topTube.getWidth(), topTube.getHeight());
 			//shapeRenderer.rect(tubeX[i], Gdx.graphics.getHeight() / 2 - gap / 2 - bottomTube.getHeight() + tubeOffset[i], bottomTube.getWidth(), bottomTube.getHeight());
 
-
 			if (Intersector.overlaps(birdCircle, topTubeRectangles[i]) || Intersector.overlaps(birdCircle, bottomTubeRectangles[i])) {
 
-				Gdx.app.log("Collision", "Yes!");
+				gameState = 2;
 
 			}
 
@@ -197,8 +229,6 @@ public class FlyingToaster extends ApplicationAdapter {
 		batch.end();
 
 		//shapeRenderer.end();
-
-
 
 	}
 
