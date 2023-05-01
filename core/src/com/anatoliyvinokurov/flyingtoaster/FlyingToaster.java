@@ -2,6 +2,8 @@ package com.anatoliyvinokurov.flyingtoaster;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -19,7 +21,8 @@ public class FlyingToaster extends ApplicationAdapter {
 	SpriteBatch batch;
 	Texture background;
 	//ShapeRenderer shapeRenderer;
-
+	Music music;
+	Sound flap;
 	Texture gameover;
 	Texture taptoplay;
 	Texture developer;
@@ -64,6 +67,12 @@ public class FlyingToaster extends ApplicationAdapter {
 		font = new BitmapFont();
 		font.setColor(Color.WHITE);
 		font.getData().setScale(10);
+
+		music = Gdx.audio.newMusic(Gdx.files.internal("music.mp3"));
+		music.setVolume(0.1f);
+		music.play();
+
+		flap = Gdx.audio.newSound(Gdx.files.internal("sfx_wing.ogg"));
 
 		birds = new Texture[2];
 		birds[0] = new Texture("bird.png");
@@ -128,6 +137,7 @@ public class FlyingToaster extends ApplicationAdapter {
 			if (Gdx.input.justTouched()) {
 
 				velocity = -15;
+				flap.play();
 
 			}
 
@@ -175,11 +185,11 @@ public class FlyingToaster extends ApplicationAdapter {
 			}
 
 		} else if (gameState == 2) {
-
+/*
 			if(scoreForAdd >= 10){ ////pokazat reklamu
 				batch.draw(taptoplay, Gdx.graphics.getWidth() / 2 - gameover.getWidth() / 2, Gdx.graphics.getHeight() / 2 - gameover.getHeight() / 2);
 			}
-
+*/
 			batch.draw(gameover, Gdx.graphics.getWidth() / 2 - gameover.getWidth() / 2, Gdx.graphics.getHeight() / 2 - gameover.getHeight() / 2);
 
 			if (Gdx.input.justTouched()) {
@@ -236,5 +246,7 @@ public class FlyingToaster extends ApplicationAdapter {
 	public void dispose () {
 		batch.dispose();
 		background.dispose();
+		flap.dispose();
+		music.dispose();
 	}
 }
